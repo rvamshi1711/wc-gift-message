@@ -13,7 +13,7 @@ class WC_Gift_Message_Handler {
         add_filter('woocommerce_order_item_name', [$this, 'show_gift_message_order'], 10, 2);
         add_filter('woocommerce_email_order_meta_fields', [$this, 'email_gift_message'], 10, 3);
 
-        add_filter('manage_shop_order_posts_columns', [$this, 'add_admin_column']);
+        add_filter('manage_edit-shop_order_columns', [$this, 'add_admin_column']);
         add_action('manage_shop_order_posts_custom_column', [$this, 'render_admin_column'], 10, 2);
 
     }
