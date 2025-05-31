@@ -5,7 +5,6 @@ class WC_Gift_Message_Handler {
     public function __construct() {
         
         add_action('woocommerce_before_add_to_cart_button', [$this, 'add_gift_message_field']);
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
 
         add_filter('woocommerce_add_cart_item_data', [$this, 'save_gift_message_to_cart'], 10, 2);
         add_action('woocommerce_checkout_create_order_line_item', [$this, 'save_gift_message_order'], 10, 4);
