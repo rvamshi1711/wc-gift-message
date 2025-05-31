@@ -20,6 +20,7 @@ class WC_Gift_Message_Handler {
     }
 
     public function add_gift_message_field() {
+    wp_nonce_field('wcgm_nonce_action', 'wcgm_nonce_field');
     echo '<div class="gift-message-wrap"><label for="gift_message">Gift Message</label>';
     echo '<textarea name="gift_message" id="gift_message" maxlength="150" rows="3" placeholder="Write a message (max 150 characters)"></textarea>';
     echo '<div id="char-count">150 characters remaining</div></div>';
@@ -48,6 +49,14 @@ class WC_Gift_Message_Handler {
     }
 
     public function save_gift_message_to_cart($cart_item_data, $product_id) {
+
+        if (
+            !isset($_POST['wcgm_nonce_field']) ||
+            !wp_verify_nonce($_POST['wcgm_nonce_field'], 'wcgm_nonce_action')
+        ) {
+            return $cart_item_data;
+        }
+
         if (!empty($_POST['gift_message'])) {
             $message = sanitize_text_field($_POST['gift_message']);
             $cart_item_data['gift_message'] = $message;
