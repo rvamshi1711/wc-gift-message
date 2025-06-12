@@ -15,10 +15,48 @@ class WC_Gift_Message_Handler {
 
         add_filter('manage_edit-shop_order_columns', [$this, 'add_admin_column']);
         add_action('manage_shop_order_posts_custom_column', [$this, 'render_admin_column'], 10, 2);
+        add_action('rest_api_init',function(){
+            register_rest_route('giftmessages/v1','/orders',[
+                'methods'=>'GET',
+                'callback'=>'wcgm_get_latest_orders_with_gift_messages',
+                'permission_callback'=>function(){
+                    return current_user_can('manage_woocommerce');
+                }
+            ]);
+        });
+        function wcgm_get_latest_orders_with_gift_messages(){
+            $orders=wc_get_orders([
+                'limit'=>10,
+                'orderby'=>'date'
+                'order'=>'DESC',
+                'status'=>['processing,completed']
+            ]);
+            $data=[];
+            foreach($orders as $order){
+                $gift_items=[];
+                foreach($order->get_items() as $item){
+                    $gift_message=$item->get_meta('Gift Message');
+                    if($gift_message){
+                        $gift_items[]
+=['product_name'=>$item->get_name(), 'gift_message'=>$gift_message,];                    }
+                }
+            }
+            if(!empty($gift_itms)){
+                $data[]=[
+                    'order_id'=>$order->get_id(),
+                    'order_date'=>$order->get_date_created()->date('Y-m-d H:i:s'),
+                    'customer_name'=>$order->get_formatted_billing_full_name(),
+                    'items'=>$gift_items,
+                ];
+            }
+        }
+        return rest_ensure_response($data);
 
     }
 
     public function add_gift_message_field() {
+
+        error_log("Hi from add_gift_message_field");
     wp_nonce_field('wcgm_nonce_action', 'wcgm_nonce_field');
     echo '<div class="gift-message-wrap"><label for="gift_message">Gift Message</label>';
     echo '<textarea name="gift_message" id="gift_message" maxlength="150" rows="3" placeholder="Write a message (max 150 characters)"></textarea>';
@@ -106,6 +144,8 @@ class WC_Gift_Message_Handler {
     }
 
     public function render_admin_column($column, $post_id) {
+        error_log("🔥 render_admin_column called. Column = {$column}, Post ID = {$post_id}");
+        
         if ('gift_message' === $column) {
             $order = wc_get_order($post_id);
             $messages = [];
