@@ -15,42 +15,50 @@ class WC_Gift_Message_Handler {
 
         add_filter('manage_edit-shop_order_columns', [$this, 'add_admin_column']);
         add_action('manage_shop_order_posts_custom_column', [$this, 'render_admin_column'], 10, 2);
-        add_action('rest_api_init',function(){
-            register_rest_route('giftmessages/v1','/orders',[
-                'methods'=>'GET',
-                'callback'=>'wcgm_get_latest_orders_with_gift_messages',
-                'permission_callback' => '__return_true',
-            ]);
-        });
-        function wcgm_get_latest_orders_with_gift_messages(){
-            $orders=wc_get_orders([
-                'limit'=>10,
-                'orderby'=>'date',
-                'order'=>'DESC',
-                'status'=>['processing,completed']
-            ]);
-            $data=[];
-            foreach($orders as $order){
-                $gift_items=[];
-                foreach($order->get_items() as $item){
-                    $gift_message=$item->get_meta('Gift Message');
-                    if($gift_message){
-                        $gift_items[]
-=['product_name'=>$item->get_name(), 'gift_message'=>$gift_message,];                    }
-                }
-            }
-            if(!empty($gift_items)){
-                $data[]=[
-                    'order_id'=>$order->get_id(),
-                    'order_date'=>$order->get_date_created()->date('Y-m-d H:i:s'),
-                    'customer_name'=>$order->get_formatted_billing_full_name(),
-                    'items'=>$gift_items,
+        
+        add_action('rest_api_init', function () {
+    register_rest_route('giftmessages/v1', '/orders', [
+        'methods' => 'GET',
+        'callback' => 'wcgm_get_latest_orders_with_gift_messages',
+        'permission_callback' => '__return_true',
+    ]);
+});
+
+function wcgm_get_latest_orders_with_gift_messages() {
+    $orders = wc_get_orders([
+        'limit' => 10,
+        'orderby' => 'date',
+        'order' => 'DESC',
+        'status' => ['processing', 'completed'],
+    ]);
+
+    $data = [];
+
+    foreach ($orders as $order) {
+        $gift_items = [];
+
+        foreach ($order->get_items() as $item) {
+            $gift_message = $item->get_meta('Gift Message');
+            if ($gift_message) {
+                $gift_items[] = [
+                    'product_name' => $item->get_name(),
+                    'gift_message' => $gift_message
                 ];
-                error_log($gift_items);
             }
         }
-        return rest_ensure_response($data);
 
+        if (!empty($gift_items)) {
+            $data[] = [
+                'order_id' => $order->get_id(),
+                'order_date' => $order->get_date_created()->date('Y-m-d H:i:s'),
+                'customer_name' => $order->get_formatted_billing_full_name(),
+                'items' => $gift_items
+            ];
+        }
+    }
+
+    return rest_ensure_response($data);
+}
     }
 
     public function add_gift_message_field() {
