@@ -19,15 +19,13 @@ class WC_Gift_Message_Handler {
             register_rest_route('giftmessages/v1','/orders',[
                 'methods'=>'GET',
                 'callback'=>'wcgm_get_latest_orders_with_gift_messages',
-                'permission_callback'=>function(){
-                    return current_user_can('manage_woocommerce');
-                }
+                'permission_callback' => '__return_true',
             ]);
         });
         function wcgm_get_latest_orders_with_gift_messages(){
             $orders=wc_get_orders([
                 'limit'=>10,
-                'orderby'=>'date'
+                'orderby'=>'date',
                 'order'=>'DESC',
                 'status'=>['processing,completed']
             ]);
@@ -41,13 +39,14 @@ class WC_Gift_Message_Handler {
 =['product_name'=>$item->get_name(), 'gift_message'=>$gift_message,];                    }
                 }
             }
-            if(!empty($gift_itms)){
+            if(!empty($gift_items)){
                 $data[]=[
                     'order_id'=>$order->get_id(),
                     'order_date'=>$order->get_date_created()->date('Y-m-d H:i:s'),
                     'customer_name'=>$order->get_formatted_billing_full_name(),
                     'items'=>$gift_items,
                 ];
+                error_log($gift_items);
             }
         }
         return rest_ensure_response($data);
